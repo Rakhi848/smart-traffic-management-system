@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Traffic Management System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to bottom, #e6f2ff, #ffffff);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px;
+            color: #333;
+        }
+
+        /* Junction Layout */
+        .junction {
+            display: grid;
+            grid-template-columns: 160px 160px 160px;
+            grid-template-rows: 160px 160px 160px;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Lane Box */
+        .lane {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        /* Center Cross (Road Look) */
+        .center {
+            width: 100%;
+            height: 100%;
+            background: #666;
+            border-radius: 10px;
+        }
+
+        /* Traffic Signal */
+        .signal {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin: 10px auto;
+            background: #ccc;
+        }
+
+        .green {
+            background: #28a745;
+            box-shadow: 0 0 15px #28a745;
+        }
+
+        .yellow {
+            background: #ffc107;
+            box-shadow: 0 0 15px #ffc107;
+        }
+
+        .red {
+            background: #dc3545;
+            box-shadow: 0 0 10px #dc3545;
+        }
+
+        p {
+            color: #333;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 6px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        select {
+            padding: 6px;
+            border-radius: 5px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<h1>SMART TRAFFIC MANAGEMENT SYSTEM</h1>
+
+<div class="junction">
+
+    <div></div>
+
+    <div class="lane">
+        <h3>North</h3>
+        <div class="signal red" id="northSignal"></div>
+        <p>Vehicles: <span id="northCount">0</span></p>
+    </div>
+
+    <div></div>
+
+    <div class="lane">
+        <h3>West</h3>
+        <div class="signal red" id="westSignal"></div>
+        <p>Vehicles: <span id="westCount">0</span></p>
+    </div>
+
+    <div class="center"></div>
+
+    <div class="lane">
+        <h3>East</h3>
+        <div class="signal red" id="eastSignal"></div>
+        <p>Vehicles: <span id="eastCount">0</span></p>
+    </div>
+
+    <div></div>
+
+    <div class="lane">
+        <h3>South</h3>
+        <div class="signal red" id="southSignal"></div>
+        <p>Vehicles: <span id="southCount">0</span></p>
+    </div>
+
+    <div></div>
+
+</div>
+
+<div class="controls">
+
+    <h3>Controls</h3>
+
+    <select id="laneSelect">
+        <option value="north">North</option>
+        <option value="south">South</option>
+        <option value="east">East</option>
+        <option value="west">West</option>
+    </select>
+
+    <button onclick="addVehicle()">Add Vehicle</button>
+    <button onclick="addEmergency()">Emergency</button>
+    <button onclick="processTraffic()">Process</button>
+    <button onclick="resetSystem()">Reset</button>
+
+</div>
+
+<script>
+
+let lanes = {
+    north: 0,
+    south: 0,
+    east: 0,
+    west: 0
+};
+
+let signalOrder = ["north", "east", "south", "west"];
+let signalIndex = 0;
+let emergencyLane = null;
+
+function updateUI() {
+    document.getElementById("northCount").innerText = lanes.north;
+    document.getElementById("southCount").innerText = lanes.south;
+    document.getElementById("eastCount").innerText = lanes.east;
+    document.getElementById("westCount").innerText = lanes.west;
+}
+
+function resetSignals() {
+    ["north","south","east","west"].forEach(l => {
+        document.getElementById(l + "Signal").className = "signal red";
+    });
+}
+
+function setGreen(lane) {
+    resetSignals();
+    document.getElementById(lane + "Signal").className = "signal green";
+}
+
+function addVehicle() {
+    let lane = document.getElementById("laneSelect").value;
+    lanes[lane]++;
+    updateUI();
+}
+
+function addEmergency() {
+    let lane = document.getElementById("laneSelect").value;
+    emergencyLane = lane;
+    alert("Emergency in " + lane.toUpperCase());
+    setGreen(lane);
+}
+
+function processTraffic() {
+
+    if (emergencyLane) {
+        let lane = emergencyLane;
+        let remove = Math.min(5, lanes[lane]);
+        lanes[lane] -= remove;
+        emergencyLane = null;
+        updateUI();
+        return;
+    }
+
+    let attempts = 0;
+
+    while (attempts < 4) {
+        let lane = signalOrder[signalIndex];
+
+        if (lanes[lane] > 0) {
+            setGreen(lane);
+
+            let remove = Math.min(5, lanes[lane]);
+            lanes[lane] -= remove;
+
+            signalIndex = (signalIndex + 1) % 4;
+            break;
+        }
+
+        signalIndex = (signalIndex + 1) % 4;
+        attempts++;
+    }
+
+    updateUI();
+}
+
+function resetSystem() {
+    lanes = {north:0, south:0, east:0, west:0};
+    emergencyLane = null;
+    updateUI();
+    resetSignals();
+}
+
+</script>
+
+</body>
+</html>
